@@ -1,4 +1,4 @@
-type OperationType = 'map' | 'mapValue' | 'mapKey';
+type OperationType = 'map' | 'mapValue' | 'mapKey' | 'mergeByIndex';
 
 type RecordKey = string | number;
 
@@ -32,6 +32,15 @@ interface RenameKeyOperation<K extends RecordKey, NewKey extends RecordKey>
   newKey: NewKey;
 }
 
+interface MergeByIndexOperation<
+  K extends RecordKey,
+  E extends Engine<Record<RecordKey, unknown>>
+> extends Operation {
+  type: 'mergeByIndex';
+  keys: K[];
+  data: E;
+}
+
 function isMapOperation<I>(operation: Operation): operation is MapOperation<I> {
   return operation.type === 'map';
 }
@@ -46,6 +55,13 @@ function isRenameKeyOperation<K1 extends RecordKey, K2 extends RecordKey>(
   operation: Operation
 ): operation is RenameKeyOperation<K1, K2> {
   return operation.type === 'mapKey';
+}
+
+function isMergeByIndexOperation<
+  K extends RecordKey,
+  E extends Engine<Record<RecordKey, unknown>>
+>(operation: Operation): operation is MergeByIndexOperation<K, E> {
+  return operation.type === 'mergeByIndex';
 }
 
 class Engine<I extends Record<RecordKey, unknown>> {
@@ -85,6 +101,18 @@ class Engine<I extends Record<RecordKey, unknown>> {
     return this.addOperation(operation);
   }
 
+  public mergeByIndex<
+    K extends RecordKey,
+    E extends Engine<Record<RecordKey, unknown>>
+  >(keys: K[], data: E): Engine<I> {
+    const operation = {
+      type: 'mergeByIndex',
+      keys,
+      data,
+    } as MergeByIndexOperation<K, E>;
+    return this.addOperation(operation);
+  }
+
   public createIndex<K extends RecordKey>(keys: K | K[]): Engine<I> {
     const keysArr = !Array.isArray(keys) ? [keys] : keys;
     const indexName = keysArr.join('_');
@@ -120,6 +148,13 @@ class Engine<I extends Record<RecordKey, unknown>> {
         } else if (isRenameKeyOperation(operation)) {
           newItem[operation.newKey] = newItem[operation.key];
           delete newItem[operation.key];
+        } else if (isMergeByIndexOperation(operation)) {
+          const query = {};
+          operation.keys.forEach((key) => {
+            query[key] = newItem[key];
+          });
+          const mergeItem = operation.data.findByIndex(query);
+          newItem = { ...newItem, ...mergeItem };
         }
       }
       return newItem;

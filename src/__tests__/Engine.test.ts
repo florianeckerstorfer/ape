@@ -128,5 +128,23 @@ describe('Engine', () => {
       const result = ape.findByIndex({ FOO: '456' });
       expect(result.bar).toBe(1);
     });
+
+    it('should merge Engine with another Engine by an index', () => {
+      const data1 = [
+        { foo: '123', bar: 0 },
+        { foo: '456', bar: 1 },
+      ];
+      const data2 = [
+        { foo: '123', qoo: 'A' },
+        { foo: '456', qoo: 'B' },
+      ];
+      const ape1 = new Engine(data1);
+      const ape2 = new Engine(data2);
+      ape1.mergeByIndex(['foo'], ape2);
+      ape2.createIndex('foo');
+
+      const result = ape1.process();
+      expect(result[0]).toEqual({ foo: '123', bar: 0, qoo: 'A' });
+    });
   });
 });
