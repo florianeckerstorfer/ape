@@ -56,9 +56,77 @@ describe('Engine', () => {
     it('should process mapKey operations and return result', () => {
       const data = [{ foo: 'bar' }];
       const ape = new Engine(data);
-      ape.mapKey('foo', (key) => key.toUpperCase());
+      ape.renameKey('foo', 'FOO');
 
       expect(ape.process()).toEqual([{ FOO: 'bar' }]);
+    });
+
+    it('should process multiple operations', () => {
+      const data = [{ foo: 'bar' }];
+      const ape = new Engine(data);
+      ape
+        .renameKey('foo', 'foobar')
+        .mapValue('foobar', (value: string) => value.toUpperCase());
+
+      expect(ape.process()).toEqual([{ foobar: 'BAR' }]);
+    });
+
+    it('should create index with single key and search by index', () => {
+      const data = [
+        { foo: '123', bar: 0 },
+        { foo: '456', bar: 1 },
+        { foo: '789', bar: 2 },
+      ];
+      const ape = new Engine(data);
+      ape.createIndex('foo');
+
+      const result = ape.findByIndex({ foo: '456' });
+      expect(result.bar).toBe(1);
+    });
+
+    it('should return `undefined` if given query does not exist in index', () => {
+      const data = [
+        { foo: '123', bar: 0 },
+        { foo: '456', bar: 1 },
+        { foo: '789', bar: 2 },
+      ];
+      const ape = new Engine(data);
+      ape.createIndex('foo');
+
+      expect(ape.findByIndex({ foo: '000' })).toBeUndefined();
+    });
+
+    it('should throw error if given index does not exist', () => {
+      const ape = new Engine([]);
+      expect(() => ape.findByIndex({ foo: 'abc' })).toThrowError(
+        'Ape Engine does not have index: foo'
+      );
+    });
+
+    it('should create index with multiple keys and search by index', () => {
+      const data = [
+        { foo: '123', goo: 'abc', bar: 0 },
+        { foo: '456', goo: 'def', bar: 1 },
+        { foo: '789', goo: 'ghi', bar: 2 },
+      ];
+      const ape = new Engine(data);
+      ape.createIndex(['foo', 'goo']);
+
+      const result = ape.findByIndex({ foo: '456', goo: 'def' });
+      expect(result.bar).toBe(1);
+    });
+
+    it('should process operations before creating index', () => {
+      const data = [
+        { foo: '123', bar: 0 },
+        { foo: '456', bar: 1 },
+        { foo: '789', bar: 2 },
+      ];
+      const ape = new Engine(data);
+      ape.renameKey('foo', 'FOO').createIndex('FOO');
+
+      const result = ape.findByIndex({ FOO: '456' });
+      expect(result.bar).toBe(1);
     });
   });
 });
