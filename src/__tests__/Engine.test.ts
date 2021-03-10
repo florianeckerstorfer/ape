@@ -53,7 +53,7 @@ describe('Engine', () => {
       expect(ape.process()).toEqual([{ foo: 'bar' }]);
     });
 
-    it('should process mapKey operations and return result', () => {
+    it('should process `renameKey` operations and return result', () => {
       const data = [{ foo: 'bar' }];
       const ape = new Engine(data);
       ape.renameKey('foo', 'FOO');
