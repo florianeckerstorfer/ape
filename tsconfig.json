@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "outDir": "dist",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "downlevelIteration": true
+  },
+  "exclude": ["src/__tests__"]
+}
