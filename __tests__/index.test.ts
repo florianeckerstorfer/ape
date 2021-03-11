@@ -1,7 +1,8 @@
-import ape from '../index';
+import ape from '../src/index';
 
-describe('ape', () => {
-  let data: Array<{ foo: string }>;
+describe('ape()', () => {
+  type Record = { foo: string };
+  let data: Record[];
 
   beforeEach(() => {
     data = [{ foo: '123' }, { foo: '456' }];
@@ -16,7 +17,7 @@ describe('ape', () => {
 
   describe('map()', () => {
     it('should map records', () => {
-      const mapFn = (r) => ({ ...r, foo: parseInt(r.foo, 10) });
+      const mapFn = (r: Record) => ({ ...r, foo: parseInt(r.foo, 10) });
       const newData = ape(data).map(mapFn).data;
 
       expect(newData).toStrictEqual([{ foo: 123 }, { foo: 456 }]);
