@@ -29,11 +29,21 @@ const engine = ape(myDataArr);
 const data = engine.data;
 ```
 
+### Types and Naming
+
+Before we look at the methods exposed by `ape` let's talk quickly about types. `ape` is written in TypeScript and typed in a way that you will receive a typed array back. You won't benefit if you use the JavaScript version of `ape`, but we will also use these terms in the docs to explain the methods:
+
+- **Data:** This is the dataset you pass into `ape` and that all methods will operate on.
+- `Record`: A single record of the given dataset, or in less fancy terms: an element in the data array.
+- `Record[]`: The type of **data**.
+- `Key`: Each record is an object with keys and values. When we talk about `Key` we mean a key in a `Record`. (For my TypeScript peeps: `string | number | symbol`)
+- `Value`: The value corresponding to a `key`. Can be anything, even another array or object.
+
 ### `map`: Maps a record
 
 It's just `Array.map()`, but you can chain it with other `ape` methods.
 
-`map((record, index, data) => mappedRecord)`
+`map((record: Record, index: number, data: Record[]) => mappedRecord)`
 
 Example:
 
@@ -47,7 +57,7 @@ ape(data).map((record, index) => ({ ...record, index })).data;
 
 Takes a key and a function and calls this function with the value corresponding with the key for each record.
 
-`mapValue(key, (value, key, index, data) => mappedValue)`
+`mapValue(key: Key, (value: Value, key: Key, index: number, data: Record[]) => mappedValue)`
 
 Example:
 
@@ -64,7 +74,7 @@ ape(data).mapValue('bar', (value) => value.toUpperCase()).data;
 
 Renames a key in each record.
 
-`rename(key, newKey)`
+`rename(key: Key, newKey: Key)`
 
 Examples:
 
