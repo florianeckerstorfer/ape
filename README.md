@@ -31,21 +31,48 @@ const data = engine.data;
 
 ### `map`: Maps a record
 
-`map((record, index, data) => mappedRecord)` works exactly the same as the native `Array.map()` function.
+It's just `Array.map()`, but you can chain it with other `ape` methods.
+
+`map((record, index, data) => mappedRecord)`
 
 Example:
 
 ```javascript
-const data = ape(myDataArr).map((record, index) => ({ ...record, index })).data;
+const data = [{ foo: '123' }, { foo: '456' }];
+ape(data).map((record, index) => ({ ...record, index })).data;
+// → [{ foo: '123', index: 0}, { foo: '456', index: 1 }]
 ```
 
 ### `mapValue`: Maps a single value
 
-`mapValue(key, (value, key, index, data) => mappedValue)` takes a key and a function and calls this function with the value corresponding with the given key for each record.
+Takes a key and a function and calls this function with the value corresponding with the key for each record.
+
+`mapValue(key, (value, key, index, data) => mappedValue)`
+
+Example:
+
+```javascript
+const data = [
+  { foo: '123', bar: 'aaa' },
+  { foo: '456', bar: 'bbb' },
+];
+ape(data).mapValue('bar', (value) => value.toUpperCase()).data;
+// → [{ foo: '123', bar: 'AAA' }, { foo: '456', bar: 'BBB' }]
+```
 
 ### `rename`: Renames a key
 
-`rename(key, newKey)` renames a key in each record.
+Renames a key in each record.
+
+`rename(key, newKey)`
+
+Examples:
+
+```javascript
+const data = [{ foo: '123' }, { foo: '456' }];
+ape(data).rename('foo', 'bar').data;
+// → [{ bar: '123' }, { bar: '456' }]
+```
 
 ### `createIndex`
 
