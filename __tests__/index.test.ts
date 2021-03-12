@@ -22,6 +22,23 @@ describe('ape()', () => {
 
       expect(newData).toStrictEqual([{ foo: 123 }, { foo: 456 }]);
     });
+
+    it('should receive index in map function', () => {
+      const mapFn = (r: Record, index: number) => ({ ...r, foo: index });
+      const newData = ape(data).map(mapFn).data;
+
+      expect(newData).toStrictEqual([{ foo: 0 }, { foo: 1 }]);
+    });
+
+    it('should receive data in map function', () => {
+      const mapFn = (r: Record, _: number, data: Record[]) => ({
+        ...r,
+        foo: data.length,
+      });
+      const newData = ape(data).map(mapFn).data;
+
+      expect(newData).toStrictEqual([{ foo: 2 }, { foo: 2 }]);
+    });
   });
 
   describe('mapValues()', () => {
@@ -30,6 +47,36 @@ describe('ape()', () => {
       const newData = ape(data).mapValue('foo', mapValueFn).data;
 
       expect(newData).toStrictEqual([{ foo: 123 }, { foo: 456 }]);
+    });
+
+    it('should receive key in mapValue function', () => {
+      const mapValueFn = (_: string, key: string | number | symbol) => key;
+      const newData = ape(data).mapValue('foo', mapValueFn).data;
+
+      expect(newData).toStrictEqual([{ foo: 'foo' }, { foo: 'foo' }]);
+    });
+
+    it('should receive index in mapValue function', () => {
+      const mapValueFn = (
+        _value: string,
+        _key: string | number | symbol,
+        index: number
+      ) => index;
+      const newData = ape(data).mapValue('foo', mapValueFn).data;
+
+      expect(newData).toStrictEqual([{ foo: 0 }, { foo: 1 }]);
+    });
+
+    it('should receive data in mapValue function', () => {
+      const mapValueFn = (
+        _value: string,
+        _key: string | number | symbol,
+        _index: number,
+        data: Array<unknown>
+      ) => data.length;
+      const newData = ape(data).mapValue('foo', mapValueFn).data;
+
+      expect(newData).toStrictEqual([{ foo: 2 }, { foo: 2 }]);
     });
   });
 

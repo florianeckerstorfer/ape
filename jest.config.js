@@ -18,7 +18,7 @@ module.exports = {
   watchPathIgnorePatterns: ['<rootDir>/node_modules/', '<rootDir>/dist/'],
   globals: {
     'ts-jest': {
-      tsconfig: './tsconfig.json',
+      tsconfig: '__tests__/tsconfig.json',
     },
   },
 };

@@ -1,13 +1,17 @@
 type RecordKey = string | number | symbol;
+
 type Index = {
   keys: string;
   index: { [key: string]: number };
 };
 
-type mapFn<R, NR> = (record: R) => NR;
+type mapFn<R, NR> = (record: R, index: number, data: R[]) => NR;
 
 type mapValueFn<R extends Record<K, V>, K extends RecordKey, V, NV> = (
-  value: R[K]
+  value: R[K],
+  key: K,
+  index: number,
+  data: R[]
 ) => NV;
 
 function map<R extends Record<K, V>, K extends RecordKey, V>(data: R[]) {
@@ -18,7 +22,12 @@ function map<R extends Record<K, V>, K extends RecordKey, V>(data: R[]) {
 
 function mapValue<R extends Record<K, V>, K extends RecordKey, V>(data: R[]) {
   return <NV>(key: K, mapValueFn: mapValueFn<R, K, V, NV>) =>
-    ape(data.map((r) => ({ ...r, [key]: mapValueFn(r[key]) })));
+    ape(
+      data.map((r, index) => ({
+        ...r,
+        [key]: mapValueFn(r[key], key, index, data),
+      }))
+    );
 }
 
 function rename<R extends Record<K, V>, K extends RecordKey, V>(data: R[]) {
