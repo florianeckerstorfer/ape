@@ -3,12 +3,12 @@
   "version": "1.0.0",
   "description": "",
   "license": "MIT",
-  "main": "dist/index.cjs.js",
-  "module": "dist/index.js",
+  "main": "dist/ape.cjs.js",
+  "module": "dist/ape.js",
   "files": [
     "dist"
   ],
-  "types": "dist/index.d.ts",
+  "types": "dist/ape.d.ts",
   "scripts": {
     "test": "jest",
     "build": "rollup --config",

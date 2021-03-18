@@ -1,130 +1,186 @@
+type OperationType = 'map' | 'mapValue' | 'mapKey' | 'mergeByIndex';
+
 type RecordKey = string | number;
 
-type mapFn<R> = (record: R) => Record<RecordKey, unknown>;
+type mapFn<R> = (
+  record: R,
+  index: number,
+  records: R[]
+) => Record<RecordKey, unknown>;
 
 type mapValueFn<R extends Record<K, V>, K extends RecordKey, V> = (
   value: R[K],
   key: K,
-  index: number
+  index: number,
+  records: R[]
 ) => unknown;
 
-enum OperationType {
-  Map,
-  MapValue,
-  RenameKey,
-}
+type Index = Record<RecordKey, number>;
 
 interface Operation {
   type: OperationType;
 }
 
-interface MapOperation<R> extends Operation {
-  type: OperationType.Map;
-  mapFn: mapFn<R>;
+interface MapOperation<I> extends Operation {
+  type: 'map';
+  map: mapFn<I>;
 }
 
-interface MapValueOperation<R extends Record<K, V>, K extends RecordKey, V>
+interface MapValueOperation<I extends Record<K, V>, K extends RecordKey, V>
   extends Operation {
-  type: OperationType.MapValue;
-  key: RecordKey;
-  mapValueFn: mapValueFn<R, K, V>;
-}
-
-interface RenameKeyOperation<K extends RecordKey, NK extends RecordKey>
-  extends Operation {
-  type: OperationType.RenameKey;
+  type: 'mapValue';
   key: K;
-  newKey: NK;
+  mapValue: mapValueFn<I, K, V>;
 }
 
-function isMapOperation<R>(operation: Operation): operation is MapOperation<R> {
-  return operation.type === OperationType.Map;
+interface RenameKeyOperation<K extends RecordKey, NewKey extends RecordKey>
+  extends Operation {
+  type: 'mapKey';
+  key: K;
+  newKey: NewKey;
 }
 
-function isMapValueOperation<R extends Record<K, V>, K extends RecordKey, V>(
-  operation: Operation
-): operation is MapValueOperation<R, K, V> {
-  return operation.type === OperationType.MapValue;
-}
-
-function isRenameKeyOperation<K, NK>(
-  operation: Operation
-): operation is RenameKeyOperation<K, NK> {
-  return operation.type === OperationType.RenameKey;
-}
-
-class Ape<
-  R extends Record<K, V>,
+interface MergeByIndexOperation<
   K extends RecordKey,
-  V,
-  PR extends Record<PK, PV>,
-  PK extends RecordKey,
-  PV
-> {
-  private operations: Operation[] = [];
-  private data: R[] = [];
+  A extends Ape<Record<RecordKey, unknown>>
+> extends Operation {
+  type: 'mergeByIndex';
+  keys: K[];
+  ape: A;
+}
 
-  public constructor(data: R[]) {
-    this.data = data;
+function isMapOperation<I>(operation: Operation): operation is MapOperation<I> {
+  return operation.type === 'map';
+}
+
+function isMapValueOperation<I extends Record<K, V>, K extends RecordKey, V>(
+  operation: Operation
+): operation is MapValueOperation<I, K, V> {
+  return operation.type === 'mapValue';
+}
+
+function isRenameKeyOperation<K1 extends RecordKey, K2 extends RecordKey>(
+  operation: Operation
+): operation is RenameKeyOperation<K1, K2> {
+  return operation.type === 'mapKey';
+}
+
+function isMergeByIndexOperation<
+  K extends RecordKey,
+  E extends Ape<Record<RecordKey, unknown>>
+>(operation: Operation): operation is MergeByIndexOperation<K, E> {
+  return operation.type === 'mergeByIndex';
+}
+
+class Ape<R extends Record<RecordKey, unknown>> {
+  private records: R[];
+  private operations: Operation[] = [];
+  private indices: Record<string, Index> = {};
+
+  public constructor(items: R[]) {
+    this.records = items;
   }
 
-  private addOperation(operation: Operation): Ape<R, K, V, PR, PK, PV> {
-    this.operations.push(operation);
+  public map(mapFn: mapFn<R>): Ape<R> {
+    const operation = { type: 'map', map: mapFn } as MapOperation<R>;
+    return this.addOperation(operation);
+  }
+
+  public mapValue<K extends RecordKey>(
+    key: K,
+    mapValue: mapValueFn<R, K, R[K]>
+  ): Ape<R> {
+    const operation: MapValueOperation<R, K, R[K]> = {
+      type: 'mapValue',
+      key,
+      mapValue,
+    };
+    return this.addOperation(operation);
+  }
+
+  public renameKey<K1 extends RecordKey, K2 extends RecordKey>(
+    key: K1,
+    newKey: K2
+  ): Ape<R> {
+    const operation: RenameKeyOperation<K1, K2> = {
+      type: 'mapKey',
+      key,
+      newKey,
+    };
+    return this.addOperation(operation);
+  }
+
+  public mergeByIndex<
+    K extends RecordKey,
+    A extends Ape<Record<RecordKey, unknown>>
+  >(keys: K | K[], ape: A): Ape<R> {
+    const operation: MergeByIndexOperation<K, A> = {
+      type: 'mergeByIndex',
+      keys: Array.isArray(keys) ? keys : [keys],
+      ape,
+    };
+    return this.addOperation(operation);
+  }
+
+  public createIndex<K extends RecordKey>(keys: K | K[]): Ape<R> {
+    const keysArr = !Array.isArray(keys) ? [keys] : keys;
+    const indexName = keysArr.join('_');
+    this.indices[indexName] = {};
+    this.process().forEach((item, i) => {
+      const itemKey = keysArr.map((key) => item[key]).join('_');
+      this.indices[indexName][itemKey] = i;
+    });
     return this;
   }
 
-  public map(mapFn: mapFn<R>): Ape<R, K, V, PR, PK, PV> {
-    const operation: MapOperation<R> = { mapFn, type: OperationType.Map };
-    return this.addOperation(operation);
+  public findByIndex(query: Partial<R>): R | undefined {
+    const indexName = Object.keys(query).join('_');
+    if (!this.indices[indexName]) {
+      throw new Error(`No index exists for "${indexName}"`);
+    }
+    const itemKey = Object.keys(query)
+      .map((key) => query[key])
+      .join('_');
+    return this.records[this.indices[indexName][itemKey]] || undefined;
   }
 
-  public mapValue(
-    key: K,
-    mapValueFn: mapValueFn<R, K, V>
-  ): Ape<R, K, V, PR, PK, PV> {
-    const operation: MapValueOperation<R, K, V> = {
-      key,
-      mapValueFn,
-      type: OperationType.MapValue,
-    };
-    return this.addOperation(operation);
-  }
-
-  public renameKey<NK extends RecordKey>(
-    key: K,
-    newKey: NK
-  ): Ape<R, K, V, PR, PK, PV> {
-    const operation: RenameKeyOperation<K, NK> = {
-      key,
-      newKey,
-      type: OperationType.RenameKey,
-    };
-    return this.addOperation(operation);
-  }
-
-  public process(): PR[] {
-    let newData: Array<Record<RecordKey, unknown>> = this.data;
-    this.operations.forEach((operation: Operation) => {
-      if (isMapOperation(operation)) {
-        newData = newData.map(operation.mapFn);
-      } else if (isMapValueOperation(operation)) {
-        newData = newData.map((record, index) => ({
-          ...record,
-          [operation.key]: operation.mapValueFn(
-            record[operation.key],
-            operation.key,
-            index
-          ),
-        }));
-      } else if (isRenameKeyOperation(operation)) {
-        newData = newData.map((record) => {
-          const value = record[operation.key];
-          delete record[operation.key];
-          return { ...record, [operation.newKey]: value };
-        });
+  public process(): Record<RecordKey, unknown>[] {
+    return this.records.map(
+      (record: Record<RecordKey, unknown>, index: number) => {
+        let newRecord = record;
+        for (const operation of this.operations) {
+          if (isMapOperation(operation)) {
+            newRecord = operation.map(newRecord, index, this.records);
+          } else if (isMapValueOperation(operation)) {
+            newRecord[operation.key] = operation.mapValue(
+              newRecord[operation.key],
+              operation.key,
+              index,
+              this.records
+            );
+          } else if (isRenameKeyOperation(operation)) {
+            newRecord = {
+              ...newRecord,
+              [operation.newKey]: newRecord[operation.key],
+            };
+            delete newRecord[operation.key];
+          } else if (isMergeByIndexOperation(operation)) {
+            const query: { [K in RecordKey]: unknown } = {};
+            operation.keys.forEach((key) => {
+              query[key] = newRecord[key];
+            });
+            const mergeItem = operation.ape.findByIndex(query);
+            newRecord = { ...newRecord, ...mergeItem };
+          }
+        }
+        return newRecord;
       }
-    });
-    return newData as PR[];
+    );
+  }
+
+  private addOperation(operation: Operation): Ape<R> {
+    this.operations.push(operation);
+    return this;
   }
 }
 

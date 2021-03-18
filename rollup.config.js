@@ -20,7 +20,7 @@ function getPlugins(format = 'esm') {
   return [typescript(typeScriptOptions), terser()];
 }
 
-const input = 'src/index.ts';
+const input = 'src/ape.ts';
 
 const external = [
   ...Object.keys(pkg.dependencies || {}),
