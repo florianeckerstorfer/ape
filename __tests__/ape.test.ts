@@ -80,6 +80,52 @@ describe('Ape', () => {
     });
   });
 
+  describe('addProperty()', () => {
+    it('should add property to records', () => {
+      const result = new Ape(data)
+        .addProperty('bar', (record) => parseInt(record.foo, 10))
+        .process();
+
+      expect(result).toStrictEqual([
+        { foo: '123', bar: 123 },
+        { foo: '456', bar: 456 },
+      ]);
+    });
+
+    it('should pass key to generateValue function', () => {
+      const result = new Ape(data)
+        .addProperty('bar', (_record, key) => key)
+        .process();
+
+      expect(result).toStrictEqual([
+        { foo: '123', bar: 'bar' },
+        { foo: '456', bar: 'bar' },
+      ]);
+    });
+
+    it('should pass index to generateValue function', () => {
+      const result = new Ape(data)
+        .addProperty('bar', (_record, _key, index) => index)
+        .process();
+
+      expect(result).toStrictEqual([
+        { foo: '123', bar: 0 },
+        { foo: '456', bar: 1 },
+      ]);
+    });
+
+    it('should pass records to generateValue function', () => {
+      const result = new Ape(data)
+        .addProperty('bar', (_record, _key, _index, records) => records.length)
+        .process();
+
+      expect(result).toStrictEqual([
+        { foo: '123', bar: 2 },
+        { foo: '456', bar: 2 },
+      ]);
+    });
+  });
+
   describe('rename()', () => {
     it('should rename keys in records', () => {
       const result = new Ape(data).renameKey('foo', 'bar').process();

@@ -1,4 +1,9 @@
-type OperationType = 'map' | 'mapValue' | 'mapKey' | 'mergeByIndex';
+type OperationType =
+  | 'map'
+  | 'mapValue'
+  | 'mapKey'
+  | 'mergeByIndex'
+  | 'addProperty';
 
 type RecordKey = string | number;
 
@@ -10,6 +15,13 @@ type mapFn<R> = (
 
 type mapValueFn<R extends Record<K, V>, K extends RecordKey, V> = (
   value: R[K],
+  key: K,
+  index: number,
+  records: R[]
+) => unknown;
+
+type generateValueFn<R extends Record<K, V>, K extends RecordKey, V> = (
+  record: R,
   key: K,
   index: number,
   records: R[]
@@ -38,6 +50,13 @@ interface RenameKeyOperation<K extends RecordKey, NewKey extends RecordKey>
   type: 'mapKey';
   key: K;
   newKey: NewKey;
+}
+
+interface AddPropertyOperation<R extends Record<K, V>, K extends RecordKey, V>
+  extends Operation {
+  type: 'addProperty';
+  key: K;
+  generateValue: generateValueFn<R, K, V>;
 }
 
 interface MergeByIndexOperation<
@@ -72,6 +91,12 @@ function isMergeByIndexOperation<
   return operation.type === 'mergeByIndex';
 }
 
+function isAddPropertyOperation<R extends Record<K, V>, K extends RecordKey, V>(
+  operation: Operation
+): operation is AddPropertyOperation<R, K, V> {
+  return operation.type === 'addProperty';
+}
+
 class Ape<R extends Record<RecordKey, unknown>> {
   private records: R[];
   private operations: Operation[] = [];
@@ -94,6 +119,18 @@ class Ape<R extends Record<RecordKey, unknown>> {
       type: 'mapValue',
       key,
       mapValue,
+    };
+    return this.addOperation(operation);
+  }
+
+  public addProperty<K extends RecordKey>(
+    key: K,
+    generateValue: generateValueFn<R, K, R[K]>
+  ): Ape<R> {
+    const operation: AddPropertyOperation<R, K, R[K]> = {
+      type: 'addProperty',
+      key,
+      generateValue,
     };
     return this.addOperation(operation);
   }
@@ -158,6 +195,16 @@ class Ape<R extends Record<RecordKey, unknown>> {
               index,
               this.records
             );
+          } else if (isAddPropertyOperation(operation)) {
+            newRecord = {
+              ...newRecord,
+              [operation.key]: operation.generateValue(
+                newRecord,
+                operation.key,
+                index,
+                this.records
+              ),
+            };
           } else if (isRenameKeyOperation(operation)) {
             newRecord = {
               ...newRecord,
