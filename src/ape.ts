@@ -5,22 +5,57 @@ type OperationType =
   | 'mergeByIndex'
   | 'addProperty';
 
-type RecordKey = string | number;
+/**
+ * Key of a record.
+ * @public
+ */
+export type RecordKey = string | number;
 
-type mapFn<R> = (
+/**
+ * Function that maps a record.
+ *
+ * @param record - Record to be mapped
+ * @param index - Index of the record in the array
+ * @param records - Array of records
+ * @typeParam R - Record
+ */
+export type mapFn<R> = (
   record: R,
   index: number,
   records: R[]
 ) => Record<RecordKey, unknown>;
 
-type mapValueFn<R extends Record<K, V>, K extends RecordKey, V> = (
+/**
+ * Function that maps a single value of a record.
+ *
+ * @param value - Value to be mapped
+ * @param key - Key of the value in the record
+ * @param index - Index of the record in the array
+ * @param records - Array of records
+ * @typeParam R - Record
+ * @typeParam K - Key
+ * @typeParam V - Value
+ */
+export type mapValueFn<R extends Record<K, V>, K extends RecordKey, V> = (
   value: R[K],
   key: K,
   index: number,
   records: R[]
 ) => unknown;
 
-type generateValueFn<R extends Record<K, V>, K extends RecordKey, V> = (
+/**
+ * Function that takes a record, key, index and the whole array and returns the
+ * value for the given key.
+ *
+ * @param record - Record the value will be added to
+ * @param key - Key that the value will be assigned to
+ * @param index - Index of the record in the array
+ * @param records - Array of records
+ * @typeParam R - Record
+ * @typeParam K - Key
+ * @typeParam V - Values of the given record
+ */
+export type generateValueFn<R extends Record<K, V>, K extends RecordKey, V> = (
   record: R,
   key: K,
   index: number,
@@ -97,20 +132,54 @@ function isAddPropertyOperation<R extends Record<K, V>, K extends RecordKey, V>(
   return operation.type === 'addProperty';
 }
 
-class Ape<R extends Record<RecordKey, unknown>> {
+/**
+ * Ape — Array Processing Engine
+ *
+ * @public
+ */
+export class Ape<R extends Record<RecordKey, unknown>> {
   private records: R[];
   private operations: Operation[] = [];
   private indices: Record<string, Index> = {};
 
-  public constructor(items: R[]) {
-    this.records = items;
+  /**
+   * ```typescript
+   * const ape = new Ape([{ a: 'val 1' }, { a: 'val 2' }]);
+   * ape.process();
+   * // → [{ a: 'val 1' }, { a: 'val 2' }]
+   * ```
+   */
+  public constructor(records: R[]) {
+    this.records = records;
   }
 
+  /**
+   * Adds a map operation; when processed the given function will be called
+   * for each record.
+   *
+   * ```typescript
+   * const ape = new Ape([{ a: 'val 1' }, { a: 'val 2' }]);
+   * ape.map(record => ({ a: record.a.toUpperCase() }));
+   * ape.process();
+   * // → [{ a: 'VAL 1' }, { a: 'VAL 2' }]
+   * ```
+   */
   public map(mapFn: mapFn<R>): Ape<R> {
     const operation = { type: 'map', map: mapFn } as MapOperation<R>;
     return this.addOperation(operation);
   }
 
+  /**
+   * Adds a map value operation; when processed the given function will be
+   * called with the value of the given key for each record.
+   *
+   * ```typescript
+   * const ape = new Ape([{ a: 'val 1' }, { a: 'val 2' }]);
+   * ape.mapValue('a', value => value.toUpperCase());
+   * ape.process();
+   * // → [{ a: 'VAL 1' }, { a: 'VAL 2' }]
+   * ```
+   */
   public mapValue<K extends RecordKey>(
     key: K,
     mapValue: mapValueFn<R, K, R[K]>
@@ -123,6 +192,17 @@ class Ape<R extends Record<RecordKey, unknown>> {
     return this.addOperation(operation);
   }
 
+  /**
+   * Adds a add property operation; when processed the given function will be
+   * used to add a new property to each record with the given key.
+   *
+   * ```typescript
+   * const ape = new Ape([{ a: 'val 1' }, { a: 'val 2' }]);
+   * ape.addProperty('b', record => record.a.toUpperCase());
+   * ape.process();
+   * // → [{ a: 'val 1', b: 'VAL 1' }, { a: 'val 2', b: 'VAL 2 }]
+   * ```
+   */
   public addProperty<K extends RecordKey>(
     key: K,
     generateValue: generateValueFn<R, K, R[K]>
@@ -135,6 +215,17 @@ class Ape<R extends Record<RecordKey, unknown>> {
     return this.addOperation(operation);
   }
 
+  /**
+   * Adds a rename key operation; when processed the given key will be renamed
+   * in each record.
+   *
+   * ```typescript
+   * const ape = new Ape([{ a: 'val 1' }, { a: 'val 2' }]);
+   * ape.renameKey('a', 'b');
+   * ape.process();
+   * // → [{ b: 'val 1' }, { b: 'val 2' }]
+   * ```
+   */
   public renameKey<K1 extends RecordKey, K2 extends RecordKey>(
     key: K1,
     newKey: K2
@@ -147,6 +238,25 @@ class Ape<R extends Record<RecordKey, unknown>> {
     return this.addOperation(operation);
   }
 
+  /**
+   * Adds a merge by index operation; when processed each record will be merged
+   * with the record in the given {@link Ape} instance that matches the given
+   * index.
+   *
+   * The given `keys` can either be a [[RecordKey]] or an array of [[RecordKey]]
+   *
+   * The given [[Ape]] instance must have an [[Ape.createIndex | index
+   * created]] before processing the merge.
+   *
+   * ```typescript
+   * const ape1 = new Ape([{ id: 1, a: 'val 1' }, { id: 2, a: 'val 2' }]);
+   * const ape2 = new Ape([{ id: 1, b: 'foo 1' }, { id: 2, b: 'foo 2' }]);
+   * ape2.createIndex('id');
+   * ape1.mergeByIndex('id');
+   * ape1.process();
+   * // → [{ id: 1, a: 'val 1', b: 'foo 1' }, { id: 2, a: 'val 2', b: 'foo 2' }]
+   * ```
+   */
   public mergeByIndex<
     K extends RecordKey,
     A extends Ape<Record<RecordKey, unknown>>
@@ -159,6 +269,18 @@ class Ape<R extends Record<RecordKey, unknown>> {
     return this.addOperation(operation);
   }
 
+  /**
+   * Immediately create an index of the records by the given key(s). The data
+   * is [[Ape.process | processed]] before the index is created.
+   *
+   * The given `keys` can either be a [[RecordKey]] or an array of [[RecordKey]]
+   *
+   * ```typescript
+   * const ape = new Ape([{ id: 1, a: 'val 1' }, { id: 2, a: 'val 2' }]);
+   * ape.createIndex('id');
+   * ape.findByIndex({ id: 1 }); // → { id: 1, a: 'val 1' }
+   * ```
+   */
   public createIndex<K extends RecordKey>(keys: K | K[]): Ape<R> {
     const keysArr = !Array.isArray(keys) ? [keys] : keys;
     const indexName = keysArr.join('_');
@@ -170,6 +292,23 @@ class Ape<R extends Record<RecordKey, unknown>> {
     return this;
   }
 
+  /**
+   * Returns a record that matches the given query. An index for the keys used
+   * in the query needs to be created first.
+   *
+   * ```typescript
+   * const ape = new Ape([{ id: 1, a: 'val 1' }, { id: 2, a: 'val 2' }]);
+   * ape.createIndex('id');
+   * // Naive find:
+   * ape.process().find(r => r.id === 1); // → { id: 1, a: 'val 1' }
+   * // Indexed find:
+   * ape.findByIndex({ id: 1 }); // → { id: 1, a: 'val 1' }
+   * ```
+   *
+   * The naive find example as an upper bound of `O(n)`, while the indexed find
+   * has an upper bound of `O(1)`. The performance is useful, for example, when
+   * [[Ape.mergeByIndex | merging two arrays of records]].
+   */
   public findByIndex(query: Partial<R>): R | undefined {
     const indexName = Object.keys(query).join('_');
     if (!this.indices[indexName]) {
@@ -181,6 +320,10 @@ class Ape<R extends Record<RecordKey, unknown>> {
     return this.records[this.indices[indexName][itemKey]] || undefined;
   }
 
+  /**
+   * Processes the data in this `Ape` instance by executing all queued
+   * operations and returning the result.
+   */
   public process(): Record<RecordKey, unknown>[] {
     return this.records.map(
       (record: Record<RecordKey, unknown>, index: number) => {
@@ -230,5 +373,3 @@ class Ape<R extends Record<RecordKey, unknown>> {
     return this;
   }
 }
-
-export default Ape;

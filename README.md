@@ -20,78 +20,44 @@ yarn add @fec/ape
 
 ## Usage
 
-`ape` does only have a single export, the titular `ape` function:
+`ape` does only have a single export, the titular `Ape` class. You add operations, such as `map()` or `renameKey()` and then process the given array.
 
 ```javascript
-import ape from 'ape';
+import Ape from 'ape';
 
-const engine = ape(myDataArr);
-const data = engine.data;
+const ape = new Ape([{ a: 'val 1' }, { a: 'val 2' }]);
+const data = ape
+  .map((record) => ({ a: record.a.toUpperCase() }))
+  .renameKey('a', 'b')
+  .process();
+// → [{ b: 'VAL 1' }, { b: 'VAL 2' }]
 ```
 
-### Types and Naming
-
-Before we look at the methods exposed by `ape` let's talk quickly about types. `ape` is written in TypeScript and typed in a way that you will receive a typed array back. You won't benefit if you use the JavaScript version of `ape`, but we will also use these terms in the docs to explain the methods:
-
-- **Data:** This is the dataset you pass into `ape` and that all methods will operate on.
-- `Record`: A single record of the given dataset, or in less fancy terms: an element in the data array.
-- `Record[]`: The type of **data**.
-- `Key`: Each record is an object with keys and values. When we talk about `Key` we mean a key in a `Record`. (For my TypeScript peeps: `string | number | symbol`)
-- `Value`: The value corresponding to a `key`. Can be anything, even another array or object.
-
-### `map`: Maps a record
-
-It's just `Array.map()`, but you can chain it with other `ape` methods.
-
-`map((record: Record, index: number, data: Record[]) => mappedRecord)`
-
-Example:
-
-```javascript
-const data = [{ foo: '123' }, { foo: '456' }];
-ape(data).map((record, index) => ({ ...record, index })).data;
-// → [{ foo: '123', index: 0}, { foo: '456', index: 1 }]
-```
-
-### `mapValue`: Maps a single value
-
-Takes a key and a function and calls this function with the value corresponding with the key for each record.
-
-`mapValue(key: Key, (value: Value, key: Key, index: number, data: Record[]) => mappedValue)`
-
-Example:
-
-```javascript
-const data = [
-  { foo: '123', bar: 'aaa' },
-  { foo: '456', bar: 'bbb' },
-];
-ape(data).mapValue('bar', (value) => value.toUpperCase()).data;
-// → [{ foo: '123', bar: 'AAA' }, { foo: '456', bar: 'BBB' }]
-```
-
-### `rename`: Renames a key
-
-Renames a key in each record.
-
-`rename(key: Key, newKey: Key)`
-
-Examples:
-
-```javascript
-const data = [{ foo: '123' }, { foo: '456' }];
-ape(data).rename('foo', 'bar').data;
-// → [{ bar: '123' }, { bar: '456' }]
-```
-
-### `createIndex`
-
-### `findByIndex`
+You can find a list of all operations and methods `Ape` provides in the Ape API docs.
 
 ## Code of conduct
 
+See [CODE_OF_CONDUCT](CODE_OF_CONDUCT.md)
+
 ## Contributing
+
+To contribute to `@fec/ape`, follow these steps:
+
+1. Fork this repository.
+2. Create a branch: `git checkout -b <branch_name>`.
+3. Install dependencies: `npm install`
+4. Make your changes (please also update the tests and documentation)
+5. Don't forgot to run the tests: `npm test`
+6. Commit your changes: `git commit -m '<commit_message>'`
+7. Push to the original branch: `git push origin <project_name>/<location>`
+8. Create the pull request.
+
+Alternatively see the GitHub documentation on [creating a pull request](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request).
 
 ## Change log
 
+Soon™️
+
 ## License
+
+See [LICENSE](LICENSE.md)

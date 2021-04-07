@@ -1,4 +1,4 @@
-import Ape from '../src/ape';
+import { Ape } from '../src/ape';
 
 describe('Ape', () => {
   type Record = { foo: string };

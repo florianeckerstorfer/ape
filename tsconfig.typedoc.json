@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "moduleResolution": "node"
+  },
+  "typedocOptions": {
+    "entryPoints": ["src/ape.ts"],
+    "out": "docs",
+    "theme": "minimal",
+    "name": "Ape API Docs",
+    "excludePrivate": true,
+    "excludeProtected": true,
+    "readme": "none"
+  }
+}
