@@ -1,0 +1,23 @@
+<svg fill="none" viewBox="0 0 800 128" width="800" height="128" xmlns="http://www.w3.org/2000/svg">
+<foreignObject width="100%" height="100%">
+  <div xmlns="http://www.w3.org/1999/xhtml">
+    <style>
+      .monkeys {
+        font-family: 'Apple Color Emoji', 'Segoe UI Emoji';
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        text-align: center;
+        font-size: 6rem;
+      }
+    </style>
+    <div class="monkeys">
+      <span>🙈🙉🙊</span>
+    </div>
+  </div>
+</foreignObject>
+</svg>
