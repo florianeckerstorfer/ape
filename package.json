@@ -14,7 +14,7 @@
     "build": "rollup --config",
     "clean": "rimraf dist docs",
     "docs": "typedoc --tsconfig tsconfig.typedoc.json",
-    "prepublish": "npm run build"
+    "prepare": "npm run build"
   },
   "author": "Florian Eckerstorfer <florian@eckerstorfer.net>",
   "devDependencies": {

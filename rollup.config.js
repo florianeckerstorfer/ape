@@ -8,7 +8,7 @@ function getOutput(format = 'esm') {
     return { dir: dirname(pkg.module), format };
   }
 
-  return { file: pkg.main, format, exports: 'default' };
+  return { file: pkg.main, format };
 }
 
 function getPlugins(format = 'esm') {
