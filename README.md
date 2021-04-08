@@ -2,7 +2,7 @@
 
 Ape is an _array processing engine_. It takes an array of records and gives you a convenient interface to operate on it. Operations are processed in batch.
 
-<div style="font-size: 4rem; text-align: center;">🙈🙉🙊</div>
+## 🙈🙉🙊
 
 Made by 👨‍💻 [Florian Eckerstorfer](https://florian.ec) in 🎡 Vienna, Europe.
 
