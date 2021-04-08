@@ -33,7 +33,7 @@ const data = ape
 // → [{ b: 'VAL 1' }, { b: 'VAL 2' }]
 ```
 
-You can find a list of all operations and methods `Ape` provides in the Ape API docs.
+You can find a list of all operations and methods `Ape` provides in the [Ape API docs](https://ape.const.sh/main/index.html).
 
 ## Code of conduct
 
