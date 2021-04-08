@@ -62,7 +62,7 @@ Alternatively see the GitHub documentation on [creating a pull request](https://
 
 ## Change log
 
-Soon™️
+See [CHANGE_LOG](CHANGE_LOG.md)
 
 ## License
 
