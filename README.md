@@ -29,7 +29,7 @@ yarn add @fec/ape
 `ape` does only have a single export, the titular `Ape` class. You add operations, such as `map()` or `renameKey()` and then process the given array.
 
 ```javascript
-import Ape from 'ape';
+import { Ape } from 'ape';
 
 const ape = new Ape([{ a: 'val 1' }, { a: 'val 2' }]);
 const data = ape
