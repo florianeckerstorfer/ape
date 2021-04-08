@@ -1,7 +1,7 @@
 {
-  "name": "ape",
+  "name": "@fec/ape",
   "version": "1.0.0",
-  "description": "",
+  "description": "Array processing engine",
   "license": "MIT",
   "main": "dist/ape.cjs.js",
   "module": "dist/ape.js",
@@ -13,9 +13,10 @@
     "test": "jest",
     "build": "rollup --config",
     "clean": "rimraf dist docs",
-    "docs": "typedoc --tsconfig tsconfig.typedoc.json"
+    "docs": "typedoc --tsconfig tsconfig.typedoc.json",
+    "prepublish": "npm run build"
   },
-  "author": "Florian Eckerstorfer <florian@const.sh>",
+  "author": "Florian Eckerstorfer <florian@eckerstorfer.net>",
   "devDependencies": {
     "@rollup/plugin-typescript": "^8.2.1",
     "@types/jest": "^26.0.22",
