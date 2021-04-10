@@ -1,6 +1,6 @@
-import { Ape } from '../src/ape';
+import { ape, ApeRecordKey } from '../src/ape';
 
-describe('Ape', () => {
+describe('ape()', () => {
   type Record = { foo: string };
   let data: Record[];
 
@@ -8,26 +8,23 @@ describe('Ape', () => {
     data = [{ foo: '123' }, { foo: '456' }];
   });
 
-  describe('process()', () => {
-    it('should return data', () => {
-      const result = new Ape(data).process();
-      expect(result).toStrictEqual(data);
-    });
+  it('should return data', () => {
+    expect(ape(data).data).toStrictEqual(data);
   });
 
   describe('map()', () => {
     it('should map records', () => {
-      const mapFn = (r: Record) => ({ ...r, foo: parseInt(r.foo, 10) });
-      const result = new Ape(data).map(mapFn).process();
+      const mapFn = (r: Record) => ({ ...r, foo: 'new' });
+      const result = ape(data).map(mapFn);
 
-      expect(result).toStrictEqual([{ foo: 123 }, { foo: 456 }]);
+      expect(result.data).toStrictEqual([{ foo: 'new' }, { foo: 'new' }]);
     });
 
     it('should receive index in map function', () => {
       const mapFn = (r: Record, index: number) => ({ ...r, foo: index });
-      const result = new Ape(data).map(mapFn).process();
+      const result = ape(data).map(mapFn);
 
-      expect(result).toStrictEqual([{ foo: 0 }, { foo: 1 }]);
+      expect(result.data).toStrictEqual([{ foo: 0 }, { foo: 1 }]);
     });
 
     it('should receive data in map function', () => {
@@ -35,117 +32,60 @@ describe('Ape', () => {
         ...r,
         foo: data.length,
       });
-      const result = new Ape(data).map(mapFn).process();
+      const result = ape(data).map(mapFn);
 
-      expect(result).toStrictEqual([{ foo: 2 }, { foo: 2 }]);
+      expect(result.data).toStrictEqual([{ foo: 2 }, { foo: 2 }]);
     });
   });
 
   describe('mapValues()', () => {
     it('should map values', () => {
       const mapValueFn = (v: string) => parseInt(v, 10);
-      const result = new Ape(data).mapValue('foo', mapValueFn).process();
+      const result = ape(data).mapValue('foo', mapValueFn);
 
-      expect(result).toStrictEqual([{ foo: 123 }, { foo: 456 }]);
+      expect(result.data).toStrictEqual([{ foo: 123 }, { foo: 456 }]);
     });
 
     it('should receive key in mapValue function', () => {
-      const mapValueFn = (_: string, key: string | number | symbol) => key;
-      const result = new Ape(data).mapValue('foo', mapValueFn).process();
+      const mapValueFn = (_: string, key: ApeRecordKey) => key;
+      const result = ape(data).mapValue('foo', mapValueFn);
 
-      expect(result).toStrictEqual([{ foo: 'foo' }, { foo: 'foo' }]);
+      expect(result.data).toStrictEqual([{ foo: 'foo' }, { foo: 'foo' }]);
     });
 
     it('should receive index in mapValue function', () => {
-      const mapValueFn = (
-        _value: string,
-        _key: string | number | symbol,
-        index: number
-      ) => index;
-      const result = new Ape(data).mapValue('foo', mapValueFn).process();
+      const mapValueFn = (_v: string, _k: ApeRecordKey, index: number) => index;
+      const result = ape(data).mapValue('foo', mapValueFn);
 
-      expect(result).toStrictEqual([{ foo: 0 }, { foo: 1 }]);
+      expect(result.data).toStrictEqual([{ foo: 0 }, { foo: 1 }]);
     });
 
     it('should receive data in mapValue function', () => {
       const mapValueFn = (
         _value: string,
-        _key: string | number | symbol,
+        _key: ApeRecordKey,
         _index: number,
         data: Array<unknown>
       ) => data.length;
-      const result = new Ape(data).mapValue('foo', mapValueFn).process();
+      const result = ape(data).mapValue('foo', mapValueFn);
 
-      expect(result).toStrictEqual([{ foo: 2 }, { foo: 2 }]);
+      expect(result.data).toStrictEqual([{ foo: 2 }, { foo: 2 }]);
     });
   });
 
-  describe('addProperty()', () => {
-    it('should add property to records', () => {
-      const result = new Ape(data)
-        .addProperty('bar', (record) => parseInt(record.foo, 10))
-        .process();
-
-      expect(result).toStrictEqual([
-        { foo: '123', bar: 123 },
-        { foo: '456', bar: 456 },
-      ]);
-    });
-
-    it('should pass key to generateValue function', () => {
-      const result = new Ape(data)
-        .addProperty('bar', (_record, key) => key)
-        .process();
-
-      expect(result).toStrictEqual([
-        { foo: '123', bar: 'bar' },
-        { foo: '456', bar: 'bar' },
-      ]);
-    });
-
-    it('should pass index to generateValue function', () => {
-      const result = new Ape(data)
-        .addProperty('bar', (_record, _key, index) => index)
-        .process();
-
-      expect(result).toStrictEqual([
-        { foo: '123', bar: 0 },
-        { foo: '456', bar: 1 },
-      ]);
-    });
-
-    it('should pass records to generateValue function', () => {
-      const result = new Ape(data)
-        .addProperty('bar', (_record, _key, _index, records) => records.length)
-        .process();
-
-      expect(result).toStrictEqual([
-        { foo: '123', bar: 2 },
-        { foo: '456', bar: 2 },
-      ]);
-    });
-  });
-
-  describe('rename()', () => {
+  describe('renameKey()', () => {
     it('should rename keys in records', () => {
-      const result = new Ape(data).renameKey('foo', 'bar').process();
+      const result = ape(data).renameKey('foo', 'bar');
 
-      expect(result).toStrictEqual([{ bar: '123' }, { bar: '456' }]);
-    });
-
-    it('should not modify original data', () => {
-      const result = new Ape(data).renameKey('foo', 'bar').process();
-      result.map((r) => r.bar);
-
-      expect(data).toStrictEqual([{ foo: '123' }, { foo: '456' }]);
+      expect(result.data).toStrictEqual([{ bar: '123' }, { bar: '456' }]);
     });
   });
 
   describe('createIndex()', () => {
     it('should create index with single key', () => {
-      const ape = new Ape(data).createIndex('foo');
+      const result = ape(data).createIndex('foo').findByIndex({ foo: '123' });
 
-      expect(ape.findByIndex({ foo: '123' })).toStrictEqual({
+      expect(result).toStrictEqual({
         foo: '123',
       });
     });
@@ -155,9 +95,11 @@ describe('Ape', () => {
         { foo: '123', bar: '456' },
         { foo: '456', bar: '456' },
       ];
-      const ape = new Ape(thisData).createIndex(['foo', 'bar']);
+      const result = ape(thisData)
+        .createIndex(['foo', 'bar'])
+        .findByIndex({ foo: '123', bar: '456' });
 
-      expect(ape.findByIndex({ foo: '123', bar: '456' })).toStrictEqual({
+      expect(result).toStrictEqual({
         foo: '123',
         bar: '456',
       });
@@ -170,17 +112,17 @@ describe('Ape', () => {
         { foo: '123', bar: '456' },
         { foo: '456', bar: '456' },
       ];
-      const ape = new Ape(thisData).createIndex(['foo', 'bar']);
+      const result = ape(thisData).createIndex(['foo', 'bar']);
 
-      expect(() => ape.findByIndex({ foo: '123' })).toThrowError(
+      expect(() => result.findByIndex({ foo: '123' })).toThrowError(
         'No index exists for "foo"'
       );
     });
 
     it('should return `undefined` if no record with given index exists', () => {
-      const ape = new Ape(data).createIndex('foo');
+      const result = ape(data).createIndex('foo').findByIndex({ foo: 'xxx' });
 
-      expect(ape.findByIndex({ foo: 'xxx' })).toBeUndefined();
+      expect(result).toBeUndefined();
     });
   });
 
@@ -200,24 +142,21 @@ describe('Ape', () => {
     ];
 
     it('should merge records with records of another Ape instance', () => {
-      const ape2 = new Ape(data2).createIndex('foo');
-      const ape = new Ape(data1).mergeByIndex('foo', ape2);
+      const result1 = ape(data1).mergeByIndex('foo', data2);
 
-      expect(ape.process()).toStrictEqual(expectedResult);
+      expect(result1.data).toStrictEqual(expectedResult);
     });
 
     it('should accept keys as array', () => {
-      const ape2 = new Ape(data2).createIndex('foo');
-      const ape = new Ape(data1).mergeByIndex(['foo'], ape2);
+      const result1 = ape(data1).mergeByIndex(['foo'], data2);
 
-      expect(ape.process()).toStrictEqual(expectedResult);
+      expect(result1.data).toStrictEqual(expectedResult);
     });
 
     it('should accept key as string', () => {
-      const ape2 = new Ape(data2).createIndex('foo');
-      const ape = new Ape(data1).mergeByIndex('foo', ape2);
+      const result1 = ape(data1).mergeByIndex('foo', data2);
 
-      expect(ape.process()).toStrictEqual(expectedResult);
+      expect(result1.data).toStrictEqual(expectedResult);
     });
   });
 });
