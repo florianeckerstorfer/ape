@@ -14,10 +14,13 @@ describe('ape()', () => {
 
   describe('map()', () => {
     it('should map records', () => {
-      const mapFn = (r: Record) => ({ ...r, foo: 'new' });
+      const mapFn = (r: Record) => ({ ...r, foo: 'new', bar: 1 });
       const result = ape(data).map(mapFn);
 
-      expect(result.data).toStrictEqual([{ foo: 'new' }, { foo: 'new' }]);
+      expect(result.data).toStrictEqual([
+        { foo: 'new', bar: 1 },
+        { foo: 'new', bar: 1 },
+      ]);
     });
 
     it('should receive index in map function', () => {
