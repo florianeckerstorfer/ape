@@ -1,25 +1,10 @@
-/**
- * Key of a record.
- * @public
- */
-export type ApeRecordKey = string | number;
+type ApeRecordKey = string | number;
 
-export type ApeRecord<K extends ApeRecordKey, V> = Record<K, V>;
+type ApeRecord<K extends ApeRecordKey, V> = Record<K, V>;
 
-export type ApeData<K extends ApeRecordKey, V> = ApeRecord<K, V>[];
+type ApeData<K extends ApeRecordKey, V> = ApeRecord<K, V>[];
 
-/**
- * Function that maps a record.
- *
- * @param record Record to be mapped
- * @param index Index of the record in the array
- * @param data Array of records
- * @typeParam Key Type of the keys of the given record
- * @typeParam Value Type of the values of the given record
- * @typeParam NewKey Type of the keys of the mapped record
- * @typeParam NewValue Type of values of the mapped record
- */
-export type mapFn<
+type mapFn<
   Key extends ApeRecordKey,
   Value,
   NewKey extends ApeRecordKey,
@@ -30,18 +15,7 @@ export type mapFn<
   data: ApeData<Key, Value>
 ) => ApeRecord<NewKey, NewValue>;
 
-/**
- * Function that maps a single value of a record.
- *
- * @param value Value to be mapped
- * @param key Key of the value in the record
- * @param index Index of the record in the array
- * @param data Array of records
- * @typeParam Key Type of the keys of the given record
- * @typeParam Value Type of the values of the given record
- * @typeParam NewValue Type of the mapped value
- */
-export type mapValueFn<Key extends ApeRecordKey, Value, NewValue> = (
+type mapValueFn<Key extends ApeRecordKey, Value, NewValue> = (
   value: unknown,
   key: Key,
   index: number,
@@ -54,22 +28,10 @@ type ApeMeta = {
   indices: Record<string, Index>;
 };
 
-/**
- * Ape
- *
- * @param data Array of records
- * @param meta Meta information required to process data
- */
 export function ape<Key extends ApeRecordKey, Value>(
   data: ApeData<Key, Value>,
   meta: ApeMeta = { indices: {} }
 ) {
-  /**
-   * Maps each record in [[ApeData]].
-   *
-   * @typeParam NewKey Keys of the mapped record, usually can be inferred from the given {@link mapFn}
-   * @typeParam NewValue Values of the mapped record, usually can be inferred from the given {@link mapFn}
-   */
   function map<NewKey extends ApeRecordKey, NewValue>(
     mapFn: mapFn<Key, Value, NewKey, NewValue>
   ) {
