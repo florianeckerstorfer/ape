@@ -16,7 +16,7 @@ type mapFn<
 ) => ApeRecord<NewKey, NewValue>;
 
 type mapValueFn<Key extends ApeRecordKey, Value, NewValue> = (
-  value: unknown,
+  value: Value,
   key: Key,
   index: number,
   data: ApeData<Key, Value>
