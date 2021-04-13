@@ -1,4 +1,4 @@
-import { ape, ApeRecordKey } from '../src/ape';
+import { ape } from '../src/ape';
 
 describe('ape()', () => {
   type Record = { foo: string };
@@ -50,14 +50,15 @@ describe('ape()', () => {
     });
 
     it('should receive key in mapValue function', () => {
-      const mapValueFn = (_: string, key: ApeRecordKey) => key;
+      const mapValueFn = (_: string, key: string | number) => key;
       const result = ape(data).mapValue('foo', mapValueFn);
 
       expect(result.data).toStrictEqual([{ foo: 'foo' }, { foo: 'foo' }]);
     });
 
     it('should receive index in mapValue function', () => {
-      const mapValueFn = (_v: string, _k: ApeRecordKey, index: number) => index;
+      const mapValueFn = (_v: string, _k: string | number, index: number) =>
+        index;
       const result = ape(data).mapValue('foo', mapValueFn);
 
       expect(result.data).toStrictEqual([{ foo: 0 }, { foo: 1 }]);
@@ -66,7 +67,7 @@ describe('ape()', () => {
     it('should receive data in mapValue function', () => {
       const mapValueFn = (
         _value: string,
-        _key: ApeRecordKey,
+        _key: string | number,
         _index: number,
         data: Array<unknown>
       ) => data.length;
