@@ -1,6 +1,6 @@
 {
   "name": "@fec/ape",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Array processing engine",
   "license": "MIT",
   "main": "dist/ape.cjs.js",
