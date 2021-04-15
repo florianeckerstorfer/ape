@@ -77,6 +77,54 @@ describe('ape()', () => {
     });
   });
 
+  describe('addValue()', () => {
+    it('should add value to record', () => {
+      const addValueFn = (record: Record) => record.foo.slice(0, 1);
+      const result = ape(data).addValue('bar', addValueFn);
+
+      expect(result.data).toStrictEqual([
+        { foo: '123', bar: '1' },
+        { foo: '456', bar: '4' },
+      ]);
+    });
+
+    it('should receive key in addValue() function', () => {
+      const addValueFn = (_: Record, key: string) => key;
+      const result = ape(data).addValue('bar', addValueFn);
+
+      expect(result.data).toStrictEqual([
+        { foo: '123', bar: 'bar' },
+        { foo: '456', bar: 'bar' },
+      ]);
+    });
+
+    it('should receive index in addValue() function', () => {
+      const addValueFn = (_record: Record, _key: string, index: number) =>
+        index;
+      const result = ape(data).addValue('bar', addValueFn);
+
+      expect(result.data).toStrictEqual([
+        { foo: '123', bar: 0 },
+        { foo: '456', bar: 1 },
+      ]);
+    });
+
+    it('should receive data in addValue() function', () => {
+      const addValueFn = (
+        _record: Record,
+        _key: string,
+        _index: number,
+        data: Record[]
+      ) => data.length;
+      const result = ape(data).addValue('bar', addValueFn);
+
+      expect(result.data).toStrictEqual([
+        { foo: '123', bar: 2 },
+        { foo: '456', bar: 2 },
+      ]);
+    });
+  });
+
   describe('renameKey()', () => {
     it('should rename keys in records', () => {
       const result = ape(data).renameKey('foo', 'bar');

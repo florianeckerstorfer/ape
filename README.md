@@ -83,6 +83,22 @@ const newData = ape(data).mapValue('a', (a) => a.toUpperCase())).data;
 // → [{ a: 'VAL 1' }, { a: 'VAL 2' }]
 ```
 
+### Add value
+
+```typescript
+addValue(newKey: ApeRecordKey, (record: ApeRecord, key: ApeRecordKey, index: number, data: ApeData) => Value) => ape
+```
+
+Takes a `addValue` function that is used to add a new value to each record with the given key.
+
+```typescript
+import { ape } from 'ape';
+
+const data = [{ a: 'val 1' }, { a: 'val 2' }];
+const newData = ape(data).addValue('b', (r) => Object.keys(r)).data;
+// → [{ a: 'val 1', b: ['a'] }, { a: 'val 2', b: ['a'] }]
+```
+
 ### Rename key
 
 ```typescript
