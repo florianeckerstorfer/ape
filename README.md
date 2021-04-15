@@ -10,10 +10,11 @@ Made by 👨‍💻 [Florian Eckerstorfer](https://florian.ec) in 🎡 Vienna, E
 
 1. [Installation](#installation)
 2. [Usage](#usage)
-3. [Code of conduct](#code-of-conduct)
-4. [Contributing](#contributing)
-5. [Change log](#change-log)
-6. [License](#license)
+3. [API documentation](#api-documentation)
+4. [Code of conduct](#code-of-conduct)
+5. [Contributing](#contributing)
+6. [Change log](#change-log)
+7. [License](#license)
 
 ## Installation
 
@@ -26,20 +27,137 @@ yarn add @fec/ape
 
 ## Usage
 
-`ape` does only have a single export, the titular `Ape` class. You add operations, such as `map()` or `renameKey()` and then process the given array.
+`ape` does only have a single export, the titular `ape` function. It takes an array of records and returns an object with various functions to process the array.
 
 ```javascript
-import { Ape } from 'ape';
+import { ape } from 'ape';
 
-const ape = new Ape([{ a: 'val 1' }, { a: 'val 2' }]);
-const data = ape
+const data = ape([{ a: 'val 1' }, { a: 'val 2' }])
   .map((record) => ({ a: record.a.toUpperCase() }))
-  .renameKey('a', 'b')
-  .process();
+  .renameKey('a', 'b').data;
 // → [{ b: 'VAL 1' }, { b: 'VAL 2' }]
 ```
 
-You can find a list of all operations and methods `Ape` provides in the [Ape API docs](https://ape.const.sh/main/index.html).
+## API documentation
+
+In the following API documentation we will be using the following types:
+
+- `ApeRecordKey`: alias for `string | number`, used as key in `ApeRecord`
+- `Value`: value used in `ApeRecord`
+- `ApeRecord`: object with key-value pairs
+- `ApeData`: array of `ApeRecord`
+
+### Map
+
+```typescript
+map((record: ApeRecord, index: number, data: ApeData) => ApeRecord) => ape
+```
+
+Takes a `map` function that is applied for each record in the array.
+
+#### Example
+
+```typescript
+import { ape } from 'ape';
+
+const data = [{ a: 'val 1' }, { a: 'val 2' }];
+const newData = ape(data).map((record) => ({ a: record.a.toUpperCase() })).data;
+// → [{ a: 'VAL 1' }, { a: 'VAL 2' }]
+```
+
+### Map value
+
+```typescript
+mapValue(key: ApeRecordKey, (value: Value, key: ApeRecordKey, index: number, data: ApeData) => Value) => ape
+```
+
+Takes a `mapValue` function that is applied to the value with the given key for each record in the array.
+
+#### Example
+
+```typescript
+import { ape } from 'ape';
+
+const data = [{ a: 'val 1' }, { a: 'val 2' }];
+const newData = ape(data).mapValue('a', (a) => a.toUpperCase())).data;
+// → [{ a: 'VAL 1' }, { a: 'VAL 2' }]
+```
+
+### Rename key
+
+```typescript
+renameKey(key: ApeRecordKey, newKey: ApeRecordKey) => ape
+```
+
+Renames the given key to `newKey` in each record in the array.
+
+#### Example
+
+```typescript
+import { ape } from 'ape';
+
+const data = [{ a: 'val 1' }, { a: 'val 2' }];
+const newData = ape(data).renameKey('a', 'b').data;
+// → [{ b: 'val 1' }, { b: 'val 2' }]
+```
+
+### Create index
+
+```typescript
+createIndex(keys: ApeRecordKey | ApeRecordKey[]) => ape
+```
+
+Creates an index for the given key or keys, by creating a hash-map of all possible values. This is a pre-requisite for using the `findByIndex()` function.
+
+#### Example
+
+See `findByIndex()`.
+
+### Merge by index
+
+```typescript
+mergeByIndex(keys: ApeRecordKey | ApeRecordKey[], mergeData: ApeData) => ape
+```
+
+Merges the array with the given data by the given key or keys. For the given `mergeData` an index is created before the merge is performed.
+
+#### Example
+
+```typescript
+import { ape } from 'ape';
+
+const data = [
+  { id: 1, a: 'val 1' },
+  { id: 2, a: 'val 2' },
+];
+const otherData = [
+  { id: 1, b: 'foo 1' },
+  { id: 2, b: 'foo 2' },
+];
+const newData = ape(data).createIndex('id').mergeByIndex('id', otherData).data;
+// → [{ id: 1, a: 'val 1', b: 'foo 1' }, { id: 2, a: 'val 2', b: 'foo 2' }]
+```
+
+### Find by index
+
+```typescript
+findByIndex(query: Partial<ApeRecord>) => ApeRecord | undefined
+```
+
+Returns the single record from the array of records that matches the given query or `undefined` if no record matches the query. Throws an error if no index exists for the keys present in the query.
+
+#### Example
+
+```typescript
+import { ape } from 'ape';
+
+const data = [
+  { id: 1, a: 'val 1' },
+  { id: 2, a: 'val 2' },
+];
+const result = ape(data).createIndex('id').findByIndex({ id: 1 });
+// → { a: 'val 1' }
+```
 
 ## Code of conduct
 
