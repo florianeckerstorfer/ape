@@ -22,6 +22,18 @@ type mapValueFn<Key extends ApeRecordKey, Value, NewValue> = (
   data: ApeData<Key, Value>
 ) => NewValue;
 
+type addValueFn<
+  Key extends ApeRecordKey,
+  Value,
+  NewKey extends ApeRecordKey,
+  NewValue
+> = (
+  record: ApeRecord<Key, Value>,
+  key: NewKey,
+  index: number,
+  data: ApeData<Key, Value>
+) => NewValue;
+
 type Index = Record<string, number>;
 
 type ApeMeta = {
@@ -48,6 +60,23 @@ export function ape<Key extends ApeRecordKey, Value>(
           ...record,
           [key]: mapValueFn(record[key], key, index, data),
         })
+      ),
+      meta
+    );
+  }
+
+  function addValue<NewKey extends ApeRecordKey, NewValue>(
+    newKey: NewKey,
+    addValueFn: addValueFn<Key, Value, NewKey, NewValue>
+  ) {
+    return ape(
+      data.map(
+        (record, index): ApeRecord<NewKey, NewValue> => {
+          return ({
+            ...record,
+            [newKey]: addValueFn(record, newKey, index, data),
+          } as unknown) as ApeRecord<NewKey, NewValue>;
+        }
       ),
       meta
     );
@@ -110,11 +139,12 @@ export function ape<Key extends ApeRecordKey, Value>(
 
   return {
     data,
-    map,
-    mapValue,
-    renameKey,
+    addValue,
     createIndex,
     findByIndex,
+    map,
+    mapValue,
     mergeByIndex,
+    renameKey,
   };
 }
